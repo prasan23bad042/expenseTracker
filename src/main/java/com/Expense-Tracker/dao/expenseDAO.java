@@ -52,4 +52,78 @@ public class ExpenseDAO{
             return pstmt.executeUpdate();
         }
     }
+    
+    public List<Expense> getAllExpenses() throws SQLException {
+        List<Expense> expenses = new ArrayList<>();
+        String sql = "SELECT e.*, c.name as category_name FROM expenses e LEFT JOIN categories c ON e.cate_id = c.id";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Expense expense = new Expense(
+                    rs.getInt("exp_id"),
+                    rs.getInt("amount"),
+                    rs.getString("description"),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getInt("cate_id"),
+                    rs.getString("category_name")
+                );
+                expenses.add(expense);
+            }
+        }
+        return expenses;
+    }
+    
+    public int createExpense(int amount, String category, String description) throws SQLException {
+        String getCategoryIdSql = "SELECT id FROM categories WHERE name = ?";
+        String insertExpenseSql = "INSERT INTO expenses (amount, description, cate_id, created_at) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            int categoryId = 0;
+            try (PreparedStatement pstmt = conn.prepareStatement(getCategoryIdSql)) {
+                pstmt.setString(1, category);
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()) {
+                    categoryId = rs.getInt("id");
+                }
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(insertExpenseSql)) {
+                pstmt.setInt(1, amount);
+                pstmt.setString(2, description);
+                pstmt.setInt(3, categoryId);
+                pstmt.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+                return pstmt.executeUpdate();
+            }
+        }
+    }
+    
+    public int updateExpense(int id, int amount, String description, String category) throws SQLException {
+        String getCategoryIdSql = "SELECT id FROM categories WHERE name = ?";
+        String updateExpenseSql = "UPDATE expenses SET amount = ?, description = ?, cate_id = ? WHERE exp_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            int categoryId = 0;
+            try (PreparedStatement pstmt = conn.prepareStatement(getCategoryIdSql)) {
+                pstmt.setString(1, category);
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()) {
+                    categoryId = rs.getInt("id");
+                }
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(updateExpenseSql)) {
+                pstmt.setInt(1, amount);
+                pstmt.setString(2, description);
+                pstmt.setInt(3, categoryId);
+                pstmt.setInt(4, id);
+                return pstmt.executeUpdate();
+            }
+        }
+    }
+    
+    public int deleteExpense(int id) throws SQLException {
+        String sql = "DELETE FROM expenses WHERE exp_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            return pstmt.executeUpdate();
+        }
+    }
 }
