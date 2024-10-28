@@ -1,5 +1,10 @@
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import javax.swing.JPanel;
 
 public class MainGui extends JFrame {
     private JButton expenseButton;
@@ -9,5 +14,43 @@ public class MainGui extends JFrame {
         initializeComponenets();
         setupLayout();
         setupEventListeners();
+    }
+    
+    private void initializeComponenets() {
+        setTitle("Main UI");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(1200,1000);
+        setLocationRelativeTo(null);
+
+        expenseButton = new JButton("Expense");
+        categoryButton = new JButton("Category");
+    }
+
+    private void setupLayout() {
+        setLayout(new BorderLayout());
+
+        JPanel panel = new JPanel(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+
+        buttonPanel.add(expenseButton);       
+        buttonPanel.add(categoryButton);
+
+        panel.add(buttonPanel,gbc);
+        add(panel,BorderLayout.CENTER);
+    }
+    
+    private void setupEventListeners() {
+        expenseButton.addActionListener(e -> {
+            new ExpenseGui().setVisible(true);
+        });
+
+        categoryButton.addActionListener(e -> {
+            new CategoryGui().setVisible(true);
+        });
     }
 }
