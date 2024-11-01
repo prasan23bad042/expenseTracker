@@ -54,3 +54,22 @@ public class MainGui extends JFrame {
         });
     }
 }
+
+class CategoryGui extends JFrame{
+    private JTextField titleField;
+    private JButton addButton;
+    private JButton refreshButton;
+    private JButton deleteButton;
+    private JButton updateButton;
+    private JTable categoryTable;
+    private DefaultTableModel tableModel;
+    private ExpenseDAO expenseDao;
+
+    public CategoryGui(){
+        initializeComponents();
+        setupLayout();
+        setupEventListeners();
+        expenseDao = new ExpenseDAO();
+        loadCategory();
+    }
+}
