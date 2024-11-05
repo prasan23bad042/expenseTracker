@@ -5,6 +5,18 @@ import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.JScrollPane;
+import javax.swing.JLabel;
+import java.awt.Insets;
+import javax.swing.JOptionPane;
+import java.sql.SQLException;
+import java.util.List;
+import com.Expense-Tracker.dao.expenseDAO;
+import com.Expense-Tracker.model.Category;
 
 public class MainGui extends JFrame {
     private JButton expenseButton;
@@ -71,5 +83,70 @@ class CategoryGui extends JFrame{
         setupEventListeners();
         expenseDao = new ExpenseDAO();
         loadCategory();
+    }
+
+    private void initializeComponents(){
+
+        titleField = new JTextField(20);
+        addButton = new JButton("Add");
+        refreshButton = new JButton("Refresh");
+        deleteButton = new JButton("Delete");
+        updateButton = new JButton("Update");
+        String[] columnNames = {"Id","Title"};
+
+        tableModel = new DefaultTableModel(columnNames,0){
+            @Override
+            public boolean isCellEditable(int row,int column){
+                return false;
+            }
+        };
+        categoryTable = new JTable(tableModel);
+
+        categoryTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        categoryTable.getSelectionModel().addListSelectionListener( 
+            e->{
+            if(!e.getValueIsAdjusting()){
+                loadSelectedCategory();
+            }
+        });
+    }
+
+    public void setupLayout(){
+        setTitle("Category UI");
+
+        setSize(1000,1000);
+        setLocationRelativeTo(null);
+        
+        setLayout(new BorderLayout());
+
+        JPanel northPanel = new JPanel(new BorderLayout());
+
+        JPanel inputPanel = new JPanel(new GridLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        inputPanel.add(new JLabel("Name"),gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        inputPanel.add(titleField,gbc);     
+
+        JPanel buttonsPanel = new JPanel(new FlowLayout());
+
+        buttonsPanel.add(addButton);
+        buttonsPanel.add(deleteButton);
+        buttonsPanel.add(updateButton);
+        buttonsPanel.add(refreshButton);
+
+        northPanel.add(inputPanel,BorderLayout.NORTH);
+        northPanel.add(buttonsPanel,BorderLayout.CENTER);
+        
+        add(northPanel,BorderLayout.NORTH);
+        add(new JScrollPane(categoryTable),BorderLayout.CENTER);
     }
 }
