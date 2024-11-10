@@ -149,4 +149,127 @@ class CategoryGui extends JFrame{
         add(northPanel,BorderLayout.NORTH);
         add(new JScrollPane(categoryTable),BorderLayout.CENTER);
     }
+
+     public void setupEventListeners(){
+        addButton.addActionListener((e)->{
+            addCategory();
+        });
+        updateButton.addActionListener((e)->{
+            updateCategory();
+        });
+        deleteButton.addActionListener((e)->{
+            deleteCategory();
+        });
+        refreshButton.addActionListener((e)->{
+            refreshCategory();
+        });
+    }
+
+     private void updateTable(List<Category> category){
+        tableModel.setRowCount(0);
+        for(Category cate: category){
+            Object row[] = {
+                cate.getId(),
+                cate.getName()
+            };
+            tableModel.addRow(row);
+        }
+    }
+
+    private void loadCategory(){
+        try{
+            List<Category> categories = expenseDao.getAllCategories();
+            updateTable(categories);
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Database Error: "+e.getMessage(),"DataBase Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }    
+
+    private void addCategory(){
+        String name = titleField.getText().trim();
+        try{
+            int rowsAffected = expenseDao.createCategory(name);
+            if(rowsAffected > 0){
+                JOptionPane.showMessageDialog(this,"Category Added Successfully", "Success",JOptionPane.INFORMATION_MESSAGE);
+            }
+            else{
+                JOptionPane.showMessageDialog(this,"Failed to add category", "Failed",JOptionPane.ERROR_MESSAGE);
+            }
+            loadCategory();
+            clearTable();
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this, "Database Failed","Database Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void updateCategory(){
+        int row = categoryTable.getSelectedRow();
+        if(row == -1){
+            JOptionPane.showMessageDialog(this,"Select a Category to update..","Invalid Update",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int id = (int)categoryTable.getValueAt(row,0);
+        String categoryName = titleField.getText();
+
+        if(categoryName == ""){
+            JOptionPane.showMessageDialog(this,"Category name is emty!","Invaild Category Name",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try{
+            if(expenseDao.updateCategory(id,categoryName) > 0){
+                JOptionPane.showMessageDialog(this,"Category updated Successfully","Update Success",JOptionPane.INFORMATION_MESSAGE);
+                loadCategory();
+                clearTable();
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Category Update Failed","Update Failed",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Databse Failed while Updating - "+e.getMessage(),"Databse failed",JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private void deleteCategory(){
+        int row = categoryTable.getSelectedRow();
+        if(row == -1){
+            JOptionPane.showMessageDialog(this,"Select a Category to update..","Invalid Update",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int id = (int)categoryTable.getValueAt(row,0);
+        try{
+            if(expenseDao.deleteCategory(id) > 0){
+                JOptionPane.showMessageDialog(this,"Category deleted Successfully","Delete Success",JOptionPane.INFORMATION_MESSAGE);
+                loadCategory();
+                clearTable();
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Category Delete Failed","Delete Failed",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Databse Failed while deleting - "+e.getMessage(),"Databse failed",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void refreshCategory(){
+        loadCategory();
+        clearTable();
+    }
+
+    private void loadSelectedCategory(){
+        int row = categoryTable.getSelectedRow();
+        if(row != -1){
+            String categoryName =  categoryTable.getValueAt(row, 1).toString();
+            titleField.setText(categoryName);
+        }
+    }
+
+    private  void clearTable(){
+        titleField.setText("");
+    }
+
 }
