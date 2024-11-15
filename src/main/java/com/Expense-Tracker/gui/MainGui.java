@@ -273,3 +273,28 @@ class CategoryGui extends JFrame{
     }
 
 }
+
+
+class ExpenseGui extends JFrame {
+
+    private JTextField amountField;
+    private JTextArea descriptoinArea;
+    private JButton addButton;
+    private JButton refreshButton;
+    private JButton deleteButton;
+    private JButton updateButton;
+    private JComboBox<String> categoryComboBox;
+
+    private JTable expenseTable;
+    private DefaultTableModel tableModel;
+    private ExpenseDAO expenseDao;
+
+    public ExpenseGui(){
+        expenseDao = new ExpenseDAO();
+        initializeComponents();
+        setupLayout();
+        setupEventListeners();
+        loadExpense();
+    }
+}
+
