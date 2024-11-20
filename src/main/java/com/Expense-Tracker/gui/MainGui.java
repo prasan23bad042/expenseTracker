@@ -15,8 +15,13 @@ import java.awt.Insets;
 import javax.swing.JOptionPane;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
+import javax.swing.JComboBox;
+import javax.swing.JTextArea;
+import java.awt.GridLayout;
 import com.Expense-Tracker.dao.expenseDAO;
 import com.Expense-Tracker.model.Category;
+import com.Expense-Tracker.model.Expense;
 
 public class MainGui extends JFrame {
     private JButton expenseButton;
@@ -295,6 +300,107 @@ class ExpenseGui extends JFrame {
         setupLayout();
         setupEventListeners();
         loadExpense();
+    }
+
+    public void initializeComponents(){
+
+        amountField = new JTextField(20);
+        descriptoinArea = new JTextArea(5,20);
+        addButton = new JButton("Add");
+        refreshButton = new JButton("Refresh");
+        deleteButton = new JButton("Delete");
+        updateButton = new JButton("Update");
+        List<String> categories = new ArrayList<>(); 
+            try{
+            List<Category> cate = expenseDao.getAllCategories();
+            for(Category c: cate){
+                categories.add(c.getName());
+            }
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Databse Failed : "+e.getMessage(),"Database Error",JOptionPane.ERROR_MESSAGE);
+        }
+
+        String[] categoriesArray = categories.toArray(new String[0]);
+
+
+        categoryComboBox = new JComboBox<>(categoriesArray);
+
+        String[] columnNames = {"Id","Amount","Description","Category","Created At"};
+
+        tableModel = new DefaultTableModel(columnNames,0){
+            @Override
+            public boolean isCellEditable(int row,int column){
+                return false;
+            }
+        };
+        expenseTable = new JTable(tableModel);
+
+        expenseTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        expenseTable.getSelectionModel().addListSelectionListener( 
+            e->{
+            if(!e.getValueIsAdjusting()){
+                loadSelectedExpense();
+            }
+        });
+
+
+    }
+
+    public void setupLayout(){
+        setTitle("Expenses");
+        setSize(1000,1200);
+
+        setLayout(new BorderLayout());
+
+        JPanel northPanel = new JPanel(new BorderLayout());
+
+        JPanel inputPanel = new JPanel(new GridLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        inputPanel.add(new JLabel("Amount"),gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        inputPanel.add(amountField,gbc);     
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        inputPanel.add(new JLabel("Description"),gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        inputPanel.add(descriptoinArea);
+
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        inputPanel.add(new JLabel("Category"),gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        inputPanel.add(categoryComboBox,gbc);
+
+
+        JPanel buttonsPanel = new JPanel(new FlowLayout());
+
+        buttonsPanel.add(addButton);
+        buttonsPanel.add(deleteButton);
+        buttonsPanel.add(updateButton);
+        buttonsPanel.add(refreshButton);
+
+        northPanel.add(inputPanel,BorderLayout.CENTER);
+        northPanel.add(buttonsPanel,BorderLayout.SOUTH);
+        
+        add(northPanel,BorderLayout.NORTH);
+        add(new JScrollPane(expenseTable),BorderLayout.CENTER);
+
+
     }
 }
 
