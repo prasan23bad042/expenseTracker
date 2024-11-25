@@ -402,5 +402,164 @@ class ExpenseGui extends JFrame {
 
 
     }
+
+    public void setupEventListeners(){
+        addButton.addActionListener((e)->{
+            addExpense();
+        });
+        updateButton.addActionListener((e)->{
+            updateExpense();
+        });
+        deleteButton.addActionListener((e)->{
+            deleteExpense();
+        });
+        refreshButton.addActionListener((e)->{
+            refreshExpense();
+        });
+    }
+
+    private void updateTable(List<Expense> expense){
+        tableModel.setRowCount(0);
+        for(Expense exp: expense){
+            Object row[] = {
+                exp.getExpId(),
+                exp.getAmount(),
+                exp.getDescription(),
+                exp.getCategory(),
+                exp.getCreatedAt()
+            };
+            tableModel.addRow(row);
+        }
+    }
+
+    private void loadExpense(){
+        try{
+            List<Expense> expense = expenseDao.getAllExpenses();
+            updateTable(expense);
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Database Error: "+e.getMessage(),"DataBase Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void addExpense(){
+        String amount = amountField.getText();
+        String category = (categoryComboBox.getSelectedItem().toString()).trim();
+        String description = descriptoinArea.getText().trim();
+        int amt = 0;
+
+        if(amount.equals("")){
+            JOptionPane.showMessageDialog(this, "Enter a Amount","Invaild field",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try{
+            amt = Integer.parseInt(amount);
+        }
+        catch(NumberFormatException e){
+            JOptionPane.showMessageDialog(this,"Enter a Number in Amount","Invaild Input",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try{
+            if(expenseDao.createExpense(amt,category,description)>0){
+                JOptionPane.showMessageDialog(this,"Expense Added Successfully", "Success",JOptionPane.INFORMATION_MESSAGE);
+            }
+            else{
+                JOptionPane.showMessageDialog(this,"Failed to add expense", "Failed",JOptionPane.ERROR_MESSAGE);
+            }
+            loadExpense();
+            clearTable();
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this, "Database Failed "+e.getMessage(),"Database Error",JOptionPane.ERROR_MESSAGE);
+        }
+        
+
+    }
+
+    private void updateExpense(){
+        int row = expenseTable.getSelectedRow();
+        if(row == -1){
+            JOptionPane.showMessageDialog(this,"Select a Category to update..","Invalid Update",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int id = (int)expenseTable.getValueAt(row,0);
+        String amount = amountField.getText();
+        String description = descriptoinArea.getText();
+        String category = categoryComboBox.getSelectedItem().toString();
+        int amt = 0;
+    
+        if(amount == ""){
+            JOptionPane.showMessageDialog(this,"Expense Amount is emty!","Invaild Category Name",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try{
+            amt = Integer.parseInt(amount);
+        }
+        catch(NumberFormatException e){
+            JOptionPane.showMessageDialog(this,"Enter a Number in Amount","Invaild Input",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try{
+            if(expenseDao.updateExpense(id,amt, description, category) > 0){
+                JOptionPane.showMessageDialog(this,"Expense updated Successfully","Update Success",JOptionPane.INFORMATION_MESSAGE);
+                loadExpense();
+                clearTable();
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Expense Update Failed","Update Failed",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Databse Failed while Updating - "+e.getMessage(),"Databse failed",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void deleteExpense(){
+        int row = expenseTable.getSelectedRow();
+        if(row == -1){
+            JOptionPane.showMessageDialog(this,"Select a Expense to update..","Invalid Update",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int id = (int)expenseTable.getValueAt(row,0);
+        try{
+            if(expenseDao.deleteExpense(id) > 0){
+                JOptionPane.showMessageDialog(this,"Expense deleted Successfully","Delete Success",JOptionPane.INFORMATION_MESSAGE);
+                loadExpense();
+                clearTable();
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Expense Delete Failed","Delete Failed",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        catch(SQLException e){
+            JOptionPane.showMessageDialog(this,"Databse Failed while deleting - "+e.getMessage(),"Databse failed",JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private void refreshExpense(){
+        loadExpense();
+        clearTable();
+    }
+
+    private void loadSelectedExpense(){
+        int row = expenseTable.getSelectedRow();
+        if(row != -1){
+            String amount = expenseTable.getValueAt(row,1).toString();
+            String description = expenseTable.getValueAt(row, 2).toString();
+            String category = expenseTable.getValueAt(row, 3).toString();
+
+            amountField.setText(amount);
+            descriptoinArea.setText(description);
+            categoryComboBox.setSelectedItem(category);
+        }
+    }
+    
+    private void clearTable(){
+        amountField.setText("");
+        descriptoinArea.setText("");
+    }
+
 }
 
